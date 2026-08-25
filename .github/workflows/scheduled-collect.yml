@@ -41,8 +41,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -n "$(git status --porcelain docs/generated)" ]]; then
-            git add -A docs/generated
+          git add -f docs/generated
+          if [ -n "$(git diff --cached --name-only)" ]; then
             git commit -m "chore(data): daily collection $(date -u +%Y-%m-%d)"
             git push
           else
