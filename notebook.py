@@ -6,20 +6,18 @@ app = marimo.App(width="medium")
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # 社説コレクター
-        日本の主要新聞の社説を **無料公開範囲** で収集・アーカイブします。
+    mo.md("""
+    # 社説コレクター
+    日本の主要新聞の社説を **無料公開範囲** で収集・アーカイブします。
 
-        | 取得方式 | 対象 |
-        |---|---|
-        | 直接HTTP | 読売 / 産経 / 北海道 / 東京 |
-        | Browser Rendering（要CFキー） | 朝日 / 毎日 / 日経 / 熊本日日 |
+    | 取得方式 | 対象 |
+    |---|---|
+    | 直接HTTP | 読売 / 産経 / 北海道 / 東京 |
+    | Browser Rendering（要CFキー） | 朝日 / 毎日 / 日経 / 熊本日日 |
 
-        API キー未設定時は **デモモード** で動作確認できます。
-        ロードマップ: 収集社説からの Word Cloud 生成（次フェーズ）
-        """
-    )
+    API キー未設定時は **デモモード** で動作確認できます。
+    ロードマップ: 収集社説からの Word Cloud 生成（次フェーズ）
+    """)
     return
 
 
@@ -68,8 +66,6 @@ def _():
     build_collector()
     return (
         BROWSER_READY,
-        BASE_DIR,
-        DB_PATH,
         REPORT_PATH,
         build_collector,
         get_preview_html,
@@ -99,7 +95,9 @@ def _(BROWSER_READY, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## 収集""")
+    mo.md("""
+    ## 収集
+    """)
     return
 
 
@@ -133,7 +131,6 @@ def _(mo, publisher_names):
 
 @app.cell
 async def _(
-    _direct_keys,
     build_collector,
     collect_batch_btn,
     collect_mock_btn,
@@ -193,12 +190,14 @@ def _():
 
         return {k: cfg.method for k, cfg in PUBLISHERS.items()}
 
-    return (_direct_keys,)
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## ダッシュボード""")
+    mo.md("""
+    ## ダッシュボード
+    """)
     return
 
 
@@ -246,7 +245,9 @@ def _(build_collector, get_tick, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## Word Cloud""")
+    mo.md("""
+    ## Word Cloud
+    """)
     return
 
 
@@ -261,7 +262,7 @@ def _(mo, publisher_names):
         [wc_pub_select, wc_top_number, wc_run_btn], justify="start", gap=1
     )
     wc_controls
-    return (wc_pub_select, wc_run_btn, wc_top_number)
+    return wc_pub_select, wc_run_btn, wc_top_number
 
 
 @app.cell
@@ -298,7 +299,9 @@ def _(build_collector, get_tick, mo, wc_pub_select, wc_run_btn, wc_top_number):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## 再訪問・変更検知""")
+    mo.md("""
+    ## 再訪問・変更検知
+    """)
     return
 
 
@@ -312,7 +315,7 @@ def _(mo):
         [revisit_hours_number, revisit_run_btn], justify="start", gap=1
     )
     revisit_controls
-    return (revisit_hours_number, revisit_run_btn)
+    return revisit_hours_number, revisit_run_btn
 
 
 @app.cell
@@ -341,7 +344,9 @@ async def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## レポート出力・リセット""")
+    mo.md("""
+    ## レポート出力・リセット
+    """)
     return
 
 
@@ -356,12 +361,11 @@ def _(mo):
         gap=1,
     )
     maintenance_controls
-    return (data_reset_btn, report_export_btn, reset_confirm_checkbox)
+    return data_reset_btn, report_export_btn, reset_confirm_checkbox
 
 
 @app.cell
-async def _(
-    DB_PATH,
+def _(
     REPORT_PATH,
     build_collector,
     data_reset_btn,
@@ -392,13 +396,11 @@ async def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        ## セレクタチューナー
-        一覧ページの HTML を取得して CSS セレクタを試験できます。
-        Browser Rendering 対応社のプレビューには Cloudflare キーが必要です。
-        """
-    )
+    mo.md("""
+    ## セレクタチューナー
+    一覧ページの HTML を取得して CSS セレクタを試験できます。
+    Browser Rendering 対応社のプレビューには Cloudflare キーが必要です。
+    """)
     return
 
 
