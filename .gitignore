@@ -1,0 +1,30 @@
+# credentials
+.env
+
+# secret design documents (same policy as .env)
+PLAN/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+
+# collected data (local)
+data/
+
+# CI-generated Pages artifacts (committed by scheduled-collect workflow only)
+docs/generated/
+
+# marimo
+.marimo/
+*.pyc
+
+# macOS
+.DS_Store
+
+# editors
+.vscode/
+.idea/

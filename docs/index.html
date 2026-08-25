@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>editorial-collector — 社説コレクター</title>
+<style>
+  :root{
+    --bg:#faf5ea; --card:#ffffff; --ink:#1c1917; --sub:#6b6459;
+    --line:#1c1917; --accent:#ffd43b; --sky:#a5d8ff; --mint:#b2f2bb;
+    --coral:#ffc9c9; --lavender:#d0bfff; --paper:#fffdf8;
+    --ok:#2f9e44; --warn:#e8590c; --bad:#c92a2a;
+    --shadow:4px 4px 0 var(--ink); --shadow-s:3px 3px 0 var(--ink);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Helvetica Neue",Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;line-height:1.7}
+
+  header.hero{background:var(--accent);color:var(--ink);padding:60px 24px 44px;
+              border-bottom:3px solid var(--ink);
+              background-image:radial-gradient(rgba(28,25,23,.14) 1.5px,transparent 1.5px);
+              background-size:18px 18px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  h1{margin:0 0 8px;font-size:2.2rem;font-weight:800;letter-spacing:-.02em;
+     display:inline-block;background:var(--card);border:3px solid var(--ink);
+     box-shadow:var(--shadow);padding:8px 22px;border-radius:12px}
+  .tagline{font-weight:bold;margin:16px 0 16px;font-size:1.05rem}
+  .badges span{display:inline-block;background:var(--card);border:2px solid var(--ink);
+               border-radius:999px;padding:3px 14px;font-size:.78rem;margin-right:8px;
+               box-shadow:2px 2px 0 var(--ink);font-weight:bold}
+
+  section{padding:40px 0;border-bottom:2px dashed rgba(28,25,23,.35)}
+  h2{font-size:1.3rem;font-weight:800;display:inline-block;background:var(--mint);
+     border:2px solid var(--ink);border-radius:10px;box-shadow:var(--shadow-s);
+     padding:4px 16px;margin:0 0 22px}
+  h3{font-size:1rem;margin:22px 0 8px}
+
+  table{border-collapse:collapse;width:100%;background:var(--card);font-size:.88rem;
+        border:2px solid var(--ink)}
+  th,td{border:1px solid var(--ink);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--accent);white-space:nowrap;font-weight:800}
+  tr:nth-child(even) td{background:#fdfaf2}
+
+  code,pre{font-family:SFMono-Regular,Consolas,Menlo,monospace;font-size:.82rem}
+  pre{background:#211d19;color:#f3ead7;padding:14px;border-radius:10px;overflow:auto;
+      border:2px solid var(--ink);box-shadow:var(--shadow-s)}
+  pre code{background:none;color:inherit}
+  code.inline{background:#f1e9d7;padding:1px 6px;border-radius:4px;border:1px solid var(--ink)}
+
+  .card{background:var(--card);border:2px solid var(--ink);border-radius:12px;
+        padding:18px;margin-bottom:20px;box-shadow:var(--shadow)}
+
+  label{display:block;font-size:.85rem;color:var(--sub);margin-bottom:4px;font-weight:bold}
+  input[type=text]{width:100%;max-width:560px;padding:9px 12px;border:2px solid var(--ink);
+                   border-radius:8px;font-size:.9rem;background:var(--paper)}
+  input[type=number]{border:2px solid var(--ink);border-radius:8px;padding:8px;background:var(--paper)}
+
+  button,a.btn{border:2px solid var(--ink);border-radius:10px;padding:10px 18px;font-size:.9rem;
+               cursor:pointer;margin-right:8px;color:var(--ink);background:var(--sky);
+               font-weight:bold;box-shadow:var(--shadow-s);text-decoration:none;display:inline-block;
+               transition:transform .06s ease,box-shadow .06s ease}
+  button:hover,a.btn:hover{transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink)}
+  button:active,a.btn:active{transform:translate(3px,3px);box-shadow:none}
+  button:focus-visible,a.btn:focus-visible{outline:3px solid #1c7ed6;outline-offset:2px}
+  button.success,a.btn.success{background:var(--mint)}
+  button.danger{background:var(--coral)}
+  button.neutral,a.btn.neutral{background:var(--lavender)}
+  button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+
+  select{padding:9px 12px;border:2px solid var(--ink);border-radius:8px;font-size:.9rem;
+         min-width:220px;background:var(--paper)}
+
+  #status{font-size:.86rem;color:var(--sub);margin:10px 0}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .chip{background:var(--card);border:2px solid var(--ink);border-radius:999px;
+        padding:3px 13px;font-size:.82rem;font-weight:bold;box-shadow:2px 2px 0 var(--ink)}
+  .chips .chip:nth-child(3n+2){background:var(--mint)}
+  .chips .chip:nth-child(3n){background:var(--sky)}
+
+  .log{background:#211d19;color:#cfe3f7;border-radius:10px;padding:12px 14px;font-size:.8rem;
+       max-height:180px;overflow:auto;white-space:pre-wrap;font-family:SFMono-Regular,Consolas,monospace;
+       border:2px solid var(--ink);box-shadow:var(--shadow-s)}
+
+  footer{padding:30px 0;color:var(--sub);font-size:.84rem;text-align:center}
+  a{color:#1864ab}
+  .note{font-size:.82rem;color:var(--sub)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>editorial-collector</h1>
+    <p class="tagline">日本の主要新聞の社説を、無料で見える範囲だけ、静かに集める。</p>
+    <div class="badges">
+      <span>v0.1.0</span><span>MIT License</span><span>marimo / CLI / Web(Pyodide)</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="about">
+  <h2>これは何？</h2>
+  <p>朝日・毎日・読売・日経・産経・北海道・東京・熊本日日の<strong>社説一覧</strong>を収集し、
+     タイトル／掲載日／URL／変更検知の状態を JSON アーカイブします。
+     ペイウォール内の全文取得は行わず、<strong>一覧情報と無料公開部分のみ</strong>を対象とします。</p>
+  <table>
+    <tr><th>取得方式</th><th>対象</th><th>備考</th></tr>
+    <tr><td>直接HTTP（静的HTML）</td><td>読売 / 産経 / 北海道 / 東京</td><td>追加設定なしで動作</td></tr>
+    <tr><td>Cloudflare Browser Rendering</td><td>朝日 / 毎日 / 日経 / 熊本日日</td><td>JS描画ページ。APIキーが必要（CLI/marimo版）</td></tr>
+  </table>
+  <p class="note">※ この Web 版（Pyodide）はブラウザの CORS 制約があるため、実データ取得には後述の Worker プロキシ URL が必要です。プロキシ無しでもデモモードが動きます。</p>
+  <div class="card" style="margin-top:16px">
+    <h3>定期収集データ（GitHub Actions 自動生成）</h3>
+    <p class="note">毎朝（JST）に Actions が全社分を収集し、このページに反映します。</p>
+    <div style="margin-top:10px">
+      <a class="btn" href="./generated/editorial_report.html">HTMLレポートを見る</a>
+      <a class="btn neutral" href="./generated/wordcloud.svg" target="_blank" rel="noopener">Word Cloud (SVG)</a>
+      <button id="btnLoadRemote" class="success">公開アーカイブを下のUIに読み込む</button>
+    </div>
+  </div>
+</section>
+
+<section id="tutorial">
+  <h2>チュートリアル</h2>
+
+  <div class="card">
+    <h3>STEP 1 — デモモードで触ってみる（設定不要）</h3>
+    <p>下の Web-UI を開き、<strong>「デモデータ生成」</strong>を押すだけです。全8社分のサンプル社説が投入され、ダッシュボードとエクスポートを試せます。</p>
+  </div>
+
+  <div class="card">
+    <h3>STEP 2 — Worker プロキシを用意する（実データ取得する場合）</h3>
+    <p>新聞サイトは他オリジンからの fetch を CORS で拒否するため、Cloudflare Worker を中継させます。</p>
+<pre><code>// worker.js — 指定 URL の HTML を返す最小構成（悪用防止のため allowlist 推奨）
+const ALLOW = ["asahi.com","mainichi.jp","yomiuri.co.jp","sankei.com",
+               "hokkaido-np.co.jp","tokyo-np.co.jp","kumanichi.com"];
+export default {
+  async fetch(request) {
+    const target = new URL(request.url).searchParams.get("url");
+    if (!target || !ALLOW.some(h => target.endsWith(h)))
+      return new Response("forbidden", { status: 403 });
+    const res = await fetch(target, { headers: { "User-Agent": "editorial-collector/0.1.0" } });
+    return new Response(res.body, {
+      status: res.status,
+      headers: { "Content-Type": res.headers.get("Content-Type") ?? "text/html",
+                 "Access-Control-Allow-Origin": "*" },
+    });
+  },
+};</code></pre>
+<pre><code>npx wrangler deploy   # デプロイ後、https://xxx.workers.dev/?url=... 形式のURLを下の設定欄へ</code></pre>
+  </div>
+
+  <div class="card">
+    <h3>STEP 3 — ローカル版（CLI / marimo）で本格運用</h3>
+<pre><code>git clone https://github.com/watanabe3tipapa/editorial-collector
+cd editorial-collector && uv sync
+uv run editorial-collector collect --all        # 収集
+uv run editorial-collector report               # HTMLレポート出力
+uv run marimo run notebook.py                   # GUI起動
+
+# JS描画対応社（朝日等）は .env に認証情報を設定
+cp .env.example .env   # CF_ACCOUNT_ID / CF_API_TOKEN を記入</code></pre>
+  </div>
+</section>
+
+<section id="webui">
+  <h2>Web-UI（Pyodide）</h2>
+
+  <div class="card">
+    <label>Worker プロキシ URL（例: https://xxx.workers.dev — 空欄ならデモのみ可）</label>
+    <input type="text" id="proxyBase" placeholder="https://your-worker.workers.dev" style="margin-bottom:10px">
+    <label><input type="checkbox" id="demoMode"> デモモード（ネットワーク通信なし）</label>
+    <div id="status">Pyodide を読み込んでいます…</div>
+    <button id="btnInit" class="neutral">Python 環境を読み込む</button>
+  </div>
+
+  <div class="card">
+    <label>新聞社</label>
+    <select id="pubSelect"></select>
+    <div style="margin-top:12px">
+      <button id="btnCollect">選択した新聞社を収集</button>
+      <button id="btnMock" class="success">デモデータ生成</button>
+    </div>
+    <div id="statsChips" class="chips"></div>
+    <table id="archiveTable">
+      <thead><tr><th>掲載日</th><th>新聞社</th><th>状態</th><th>タイトル</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note" id="archiveCount"></p>
+    <div style="margin-top:10px">
+      <button id="btnExport" class="neutral">JSON エクスポート</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+      <button id="btnImport" class="neutral">JSON インポート</button>
+      <button id="btnReset" class="danger">リセット</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Word Cloud</h3>
+    <p class="note">収集済みタイトルからキーワードを抽出して SVG 描画します（辞書不要の簡易トークナイザ）。</p>
+    <label>対象</label>
+    <select id="wcPub"><option value="all">全体（全社）</option></select>
+    <div style="margin-top:10px">
+      <button id="btnWordcloud" disabled>Word Cloud 生成</button>
+      最大語数 <input type="number" id="wcTop" value="60" min="20" max="150" step="10"
+        style="width:80px;padding:8px;border:1px solid var(--line);border-radius:8px">
+    </div>
+    <div id="wcChips" class="chips"></div>
+    <div id="wcResult" style="overflow-x:auto"></div>
+  </div>
+
+  <div class="card">
+    <strong>ログ</strong>
+    <div class="log" id="logArea">— 起動しました —</div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  editorial-collector · MIT License ·
+  <a href="https://github.com/watanabe3tipapa/editorial-collector">GitHub</a>
+  ／ 低頻度・無料公開範囲のみのポリシーで運用してください
+</footer>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+<script>
+const PYODIDE_VERSIONS = ["v0.27.7", "v0.26.4"];
+const ARCH_KEY = "ec_archives_v1";
+let pyodide = null;
+
+const $ = (id) => document.getElementById(id);
+const log = (msg) => { $("logArea").textContent += "\n" + msg; $("logArea").scrollTop = 1e9; };
+const setStatus = (t) => { $("status").textContent = t; };
+
+const PUB_KEYS = ["yomiuri","sankei","hokkaido","tokyo","kumanichi","asahi","mainichi","nikkei"];
+
+function loadArchives(){
+  try { return JSON.parse(localStorage.getItem(ARCH_KEY)) ?? []; }
+  catch { return []; }
+}
+function saveArchives(list){ localStorage.setItem(ARCH_KEY, JSON.stringify(list)); }
+
+function renderAll(){
+  const archives = loadArchives();
+  const byPub = {};
+  for (const a of archives) byPub[a.publisher_name] = (byPub[a.publisher_name] ?? 0) + 1;
+  $("statsChips").innerHTML =
+    `<span class="chip"><b>総件数</b> ${archives.length}</span>` +
+    Object.entries(byPub).sort((x,y)=>y[1]-x[1])
+      .map(([n,c])=>`<span class="chip">${n} ${c}</span>`).join("");
+  const tbody = $("archiveTable").querySelector("tbody");
+  tbody.innerHTML = archives.slice(0,300).map(a =>
+    `<tr><td>${a.publish_date||""}</td><td>${a.publisher_name}</td>`+
+    `<td style="color:${a.status==="active"?"var(--ok)":(a.status==="changed"?"var(--warn)":"var(--bad)")}">${a.status}</td>`+
+    `<td><a href="${a.url}" target="_blank" rel="noopener">${a.title}</a></td></tr>`).join("");
+  $("archiveCount").textContent = `${archives.length} 件（表示は最新300件）`;
+}
+
+async function webFetch(url){
+  const base = $("proxyBase").value.trim().replace(/\/+$/,"");
+  if (!base) throw new Error("Worker プロキシ URL が未設定です（チュートリアル STEP 2 参照）");
+  const resp = await fetch(`${base}/?url=${encodeURIComponent(url)}`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return await resp.text();
+}
+
+async function collectPublisher(key){
+  const demo = $("demoMode").checked;
+  let items;
+  if (demo){
+    items = pyodide.runPython(
+      `__import__("json").dumps(editorial_collector.fetchers.generate_mock_candidates("${key}", 5))`
+    );
+    items = JSON.parse(items);
+    log(`[demo] ${key}: ${items.length} 件のデモデータ`);
+  } else {
+    const cfgJson = pyodide.runPython(
+      `__import__("json").dumps({"list_url": editorial_collector.config.PUBLISHERS["${key}"].list_url,
+                                 "method": editorial_collector.config.PUBLISHERS["${key}"].method})`
+    );
+    const cfg = JSON.parse(cfgJson);
+    if (cfg.method === "browser"){
+      log(`[${key}] このサイトはJS描画のため Web 版では未対応です（CLI/marimo版をご利用ください）`);
+      return;
+    }
+    setStatus(`${cfg.list_url} を取得中…`);
+    const html = await webFetch(cfg.list_url);
+    pyodide.globals.set("_ec_html_in", html);
+    pyodide.globals.set("_ec_url_in", cfg.list_url);
+    const parsed = pyodide.runPython(
+      `__import__("json").dumps(editorial_collector.fetchers.parse_list_html(_ec_html_in, editorial_collector.config.PUBLISHERS["${key}"], _ec_url_in), ensure_ascii=False)`
+    );
+    items = JSON.parse(parsed);
+    log(`[${key}] 候補 ${items.length} 件を抽出`);
+  }
+
+  const existing = new Set(loadArchives().map(a => a.id));
+  for (const it of items){
+    const id = pyodide.runPython(
+      `editorial_collector.models.generate_id(${JSON.stringify(it.url)}, ${JSON.stringify(it.title)}, ${JSON.stringify(it.publish_date)})`
+    );
+    if (existing.has(id)) continue;
+    existing.add(id);
+    loadArchives().unshift({
+      id, title: it.title, url: it.url, publish_date: it.publish_date,
+      publisher: key, publisher_name: PUB_NAME_MAP[key] ?? key,
+      status: "active",
+      collected_at: new Date().toISOString(),
+      content_hash: null, changed: false, summary: null, keywords: [key, "editorial"],
+    });
+  }
+  saveArchives(loadArchives());
+  renderAll();
+  setStatus("完了");
+}
+
+let PUB_NAME_MAP = {};
+
+async function initPy(){
+  $("btnInit").disabled = true;
+  try {
+    try {
+      pyodide = await loadPyodide();
+    } catch (e1) {
+      log("CDN v0.27.7 の読み込みに失敗。フォールバックを試みます…");
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSIONS[1]}/pyodide.js`;
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      pyodide = await loadPyodide();
+    }
+    setStatus("beautifulsoup4 を読み込み中…");
+    await pyodide.loadPackage("beautifulsoup4");
+
+    setStatus("パッケージソースを配置中…");
+    pyodide.FS.mkdir("/home/pyodide/editorial_collector");
+    const modules = ["__init__","config","models","storage","fetchers","collector","report","wordcloud"];
+    for (const m of modules){
+      const src = await (await fetch(`./py/editorial_collector/${m}.py`)).text();
+      pyodide.FS.writeFile(`/home/pyodide/editorial_collector/${m}.py`, src);
+    }
+    pyodide.runPython(`
+      import sys
+      sys.path.insert(0, "/home/pyodide")
+      import editorial_collector, editorial_collector.fetchers
+      import editorial_collector.config as _cfg
+      import json as _json
+      print("editorial_collector", editorial_collector.__version__)
+    `);
+
+    PUB_NAME_MAP = JSON.parse(pyodide.runPython(
+      `__import__("json").dumps({k: c.name for k, c in editorial_collector.config.PUBLISHERS.items()}, ensure_ascii=False)`
+    ));
+    $("pubSelect").innerHTML = PUB_KEYS.map(k =>
+      `<option value="${k}">${PUB_NAME_MAP[k]}</option>`).join("");
+    $("wcPub").innerHTML =
+      `<option value="all">全体（全社）</option>` +
+      PUB_KEYS.map(k => `<option value="${k}">${PUB_NAME_MAP[k]}</option>`).join("");
+
+    setStatus("準備完了 ✓（初回のみ読み込みに時間がかかります）");
+    $("btnCollect").disabled = false;
+    $("btnMock").disabled = false;
+    $("btnWordcloud").disabled = false;
+  } catch (err){
+    setStatus("初期化に失敗しました");
+    log("ERROR: " + err.message);
+    $("btnInit").disabled = false;
+  }
+}
+
+$("btnInit").addEventListener("click", initPy);
+$("btnCollect").addEventListener("click", async () => {
+  if (!pyodide) return;
+  $("btnCollect").disabled = true;
+  try { await collectPublisher($("pubSelect").value); }
+  catch (e){ log("ERROR: " + e.message); setStatus("収集に失敗しました"); }
+  $("btnCollect").disabled = false;
+});
+$("btnMock").addEventListener("click", async () => {
+  if (!pyodide) return;
+  $("demoMode").checked = true;
+  for (const k of PUB_KEYS){ await collectPublisher(k); }
+});
+$("btnWordcloud").addEventListener("click", () => {
+  if (!pyodide) return;
+  const archives = loadArchives();
+  if (archives.length === 0){
+    log("Word Cloud: データがありません（収集またはデモデータ生成を実行してください）");
+    return;
+  }
+  $("btnWordcloud").disabled = true;
+  try {
+    pyodide.globals.set("_ec_records_in", JSON.stringify(archives));
+    pyodide.globals.set("_ec_pub_in", $("wcPub").value);
+    const resultJson = pyodide.runPython(
+      '__import__("json").dumps(editorial_collector.wordcloud.render_from_records(' +
+      '__import__("json").loads(_ec_records_in), ' +
+      'publisher=None if _ec_pub_in == "all" else _ec_pub_in, ' +
+      'top_n=int($("wcTop").value or 60)), ensure_ascii=False)'
+    );
+    const result = JSON.parse(resultJson);
+    $("wcResult").innerHTML = result.svg;
+    $("wcChips").innerHTML =
+      '<span class="chip"><b>トークン</b> ' + result.token_count + '</span>' +
+      '<span class="chip"><b>ユニーク</b> ' + result.unique_count + '</span>' +
+      result.top_words.slice(0, 10).map(w =>
+        '<span class="chip">' + w.word + ' ×' + w.count + '</span>').join("");
+    log(`Word Cloud: 対象 ${archives.length} 件 / トークン ${result.token_count}`);
+  } catch (e){
+    log("ERROR: " + e.message);
+  }
+  $("btnWordcloud").disabled = false;
+});
+
+$("btnExport").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(loadArchives(), null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "editorial_archives.json";
+  a.click();
+});
+$("btnImport").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data)) throw new Error("JSON配列ではありません");
+      saveArchives(data);
+      renderAll();
+      log(`インポート完了: ${data.length} 件`);
+    } catch (e){ log("インポート失敗: " + e.message); }
+  };
+  reader.readAsText(f);
+});
+$("btnReset").addEventListener("click", () => {
+  if (confirm("すべてのアーカイブを削除します。よろしいですか？")){
+    saveArchives([]);
+    renderAll();
+    log("アーカイブをリセットしました");
+  }
+});
+$("btnLoadRemote").addEventListener("click", async () => {
+  try {
+    setStatus("公開アーカイブを取得中…");
+    const resp = await fetch("./generated/editorial_archives.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}（まだ生成データがありません）`);
+    const data = await resp.json();
+    if (!Array.isArray(data)) throw new Error("JSON配列ではありません");
+    saveArchives(data);
+    renderAll();
+    log(`公開アーカイブ読み込み完了: ${data.length} 件`);
+    setStatus("読み込み完了 ✓");
+  } catch (e){
+    log("公開データ読み込み失敗: " + e.message);
+    setStatus("読み込みに失敗しました");
+  }
+});
+
+$("proxyBase").value = localStorage.getItem("ec_proxy_base") ?? "";
+$("proxyBase").addEventListener("change", (e) => localStorage.setItem("ec_proxy_base", e.target.value));
+
+renderAll();
+$("btnCollect").disabled = true;
+$("btnMock").disabled = true;
+</script>
+</body>
+</html>

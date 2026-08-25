@@ -1,0 +1,50 @@
+name: scheduled-collect
+
+on:
+  schedule:
+    - cron: "20 0 * * *" # 09:20 JST — 1日1回（低頻度ポリシー）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect editorials (all publishers)
+        run: |
+          uv run editorial-collector collect --all || echo "::warning::一部の出版社で収集失敗。既存データで継続します"
+
+      - name: Generate Pages artifacts
+        run: |
+          mkdir -p docs/generated
+          uv run editorial-collector report --out docs/generated/editorial_report.html
+          uv run editorial-collector wordcloud --out docs/generated/wordcloud.svg
+          cp data/editorial_archives.json docs/generated/editorial_archives.json
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain docs/generated)" ]]; then
+            git add -A docs/generated
+            git commit -m "chore(data): daily collection $(date -u +%Y-%m-%d)"
+            git push
+          else
+            echo "no changes"
+          fi
