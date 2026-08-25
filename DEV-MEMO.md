@@ -261,3 +261,28 @@ docs/index.html の CSS を全面リテーマ（マークアップ・JSは無変
 - chips は nth-child で3色循環。テーブルは墨線+黄ヘッダ+偶数行クリーム
 - wordcloud SVG の背景を #ffffff に変更してカードに馴染ませ、再生成済み
 - 気に入らない場合は git diff docs/index.html で元デザインへ戻せる（本コミット前のため現状 diff で確認）
+
+---
+
+## ⚠️ 2026-08-25（追記6） — 任意設定の残タスク（未実施・注意）
+
+### 1. Actions Secrets 未登録
+
+- **Settings → Secrets and variables → Actions** に `CF_ACCOUNT_ID` / `CF_API_TOKEN` を登録すること
+- 未登録のままでは `scheduled-collect` は直接HTTP対応社（読売 / 産経 / 北海道 / 東京）のみ収集し、
+  Browser Rendering 対応社（朝日 / 毎日 / 日経 / 熊本日日）は warning 付きでスキップされる（ジョブ自体は成功）
+- **セキュリティ注意**: 本開発中にチャットへ貼付したトークンはローテーション済み／要ローテーション。
+  新トークンを発行して Secrets へ登録し、`.env`（ローカル）も更新して整合させること
+
+### 2. 初回データ生成が未実行
+
+- **Actions タブ → scheduled-collect → Run workflow** を手動で1回実行すること
+- 実行まで `docs/generated/` が存在せず、LP「定期収集データ」カードの
+  レポート / Word Cloud / 公開アーカイブ読込ボタン がすべて 404 になる
+- cron（毎日 09:20 JST）はリポジトリが60日間アクティブでないと自動停止する点にも注意
+  （GitHub の scheduled workflows 失効ポリシー。手動実行や push で継続）
+
+### 3. 動作記録（2026-08-25 時点）
+
+- 初回デプロイ時 `setup-uv` のキャッシュ事後処理で失敗 → `enable-cache: false` で解決済み（51cb108）
+- Pages URL: https://watanabe3tipapa.github.io/editorial-collector/
