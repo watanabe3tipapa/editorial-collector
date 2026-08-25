@@ -286,3 +286,33 @@ docs/index.html の CSS を全面リテーマ（マークアップ・JSは無変
 
 - 初回デプロイ時 `setup-uv` のキャッシュ事後処理で失敗 → `enable-cache: false` で解決済み（51cb108）
 - Pages URL: https://watanabe3tipapa.github.io/editorial-collector/
+
+---
+
+## 2026-08-25（追記7） — 初回定期収集成功とCI修正、LPモーション
+
+### Actions Secrets 登録
+
+`gh secret set` で `CF_ACCOUNT_ID` / `CF_API_TOKEN` を登録（ローカル `.env` と同一値）。
+※ アカウントには別途 `CLOUDFLARE` シークレットが存在（本プロジェクトとは非依存）。
+
+### 初回 scheduled-collect 実行で判明した2件の修正
+
+1. **成果物がコミットされない**: `.gitignore` 済みの `docs/generated/` は
+   `git status --porcelain` / `git add -A` に映らない → `git add -f` + staged diff 判定に修正
+2. **Pagesへ反映されない**: bot の push（GITHUB_TOKEN）は他ワークフローを発火しない仕様。
+   → `scheduled-collect` 内で configure-pages / upload-pages-artifact / deploy-pages を
+   直接実行する自己完結型に変更。permissions に pages:write / id-token:write 追加
+
+### 収集実績（初回）
+
+6社108件で Pages 配信開始。朝日・日経は `2001 Rate limit exceeded` でスキップ
+（連続 workflow 実行によるもの。毎日 cron の1日1回なら問題ない想定）。
+
+### LPモーション（マイルド Neo Brutalism に追記）
+
+- ヒーロー要素の段差フェードイン＋ドット模様ドリフト
+- カードホバー浮上、スクロール連動 reveal（IntersectionObserver）
+- Word Cloud 表示アニメ、`prefers-reduced-motion` 対応
+- 実装上の注意: `$(`proxyBase`).value` がスクリプト内に複数あり、最初の置換で webFetch 内に
+  誤挿入した → node --check で検出、修復済み

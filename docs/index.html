@@ -85,6 +85,25 @@
   footer{padding:30px 0;color:var(--sub);font-size:.84rem;text-align:center}
   a{color:#1864ab}
   .note{font-size:.82rem;color:var(--sub)}
+
+  /* --- motion --- */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  header.hero h1{animation:rise .5s ease-out both}
+  .tagline{animation:rise .5s .1s ease-out both}
+  .badges span{animation:rise .4s ease-out both}
+  .badges span:nth-child(2){animation-delay:.15s}
+  .badges span:nth-child(3){animation-delay:.25s}
+  @keyframes drift{from{background-position:0 0}to{background-position:18px 18px}}
+  header.hero{animation:drift 9s ease-in-out infinite alternate}
+  .card{transition:transform .15s ease,box-shadow .15s ease}
+  .card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+  #wcResult svg{animation:rise .5s .05s ease-out both}
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+  }
 </style>
 </head>
 <body>
@@ -464,6 +483,16 @@ $("btnLoadRemote").addEventListener("click", async () => {
     setStatus("読み込みに失敗しました");
   }
 });
+
+// scroll reveal（reduced-motion 環境では CSS 側で無効化）
+const revealEls = document.querySelectorAll("section .card, section h2");
+revealEls.forEach(el => el.classList.add("reveal"));
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries){
+    if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+  }
+}, { threshold: .08 });
+revealEls.forEach(el => io.observe(el));
 
 $("proxyBase").value = localStorage.getItem("ec_proxy_base") ?? "";
 $("proxyBase").addEventListener("change", (e) => localStorage.setItem("ec_proxy_base", e.target.value));
