@@ -1,10 +1,10 @@
 # editorial-collector
 
-**日本の主要新聞の社説を、無料で見える範囲だけ、静かに集める。**
+**新聞社の社説を、無料公開分だけ自動で集める。**
 
-editorial-collector は、朝日・毎日・読売・日経・産経・北海道・東京・熊本日日新聞の社説一覧（タイトル・掲載日・URL）を収集し、JSON アーカイブと HTML レポート、Word Cloud を生成するツールです。CLI・marimo UI・ブラウザ Web-UI（Pyodide）の3つの形態で同じコアを共有します。
+研究・比較・定点観測にそのまま使える収集基盤です。朝日・毎日・読売・日経・産経・北海道・東京・熊本日日の社説一覧（タイトル・掲載日・URL）を収集し、JSON アーカイブ・HTML レポート・Word Cloud を生成します。CLI・marimo UI・ブラウザ Web-UI（Pyodide）の3つの形態で同じコアを共有します。
 
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](https://github.com/watanabe3tipapa/editorial-collector/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/editorial-collector/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![deploy-pages](https://github.com/watanabe3tipapa/editorial-collector/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/watanabe3tipapa/editorial-collector/actions/workflows/deploy-pages.yml)
@@ -13,58 +13,41 @@ editorial-collector は、朝日・毎日・読売・日経・産経・北海道
 
 ---
 
-## 概要
+## できること
 
-- 収集対象は **無料公開範囲のみ**（一覧ページのタイトル・URL・日付）。ペイウォール内の全文取得は行いません
-- 静的HTMLは直接HTTPで取得し、JS描画ページ（朝日 / 毎日 / 日経 / 熊本日日）は Cloudflare Browser Rendering REST API を使用
-- 再訪問による変更検知（`active` / `changed` / `deleted`）と SHA256 コンテンツハッシュ管理
-- 1日1回程度の低頻度運用を前提としたポリライト設計（ランダム待機・単発リクエスト）
+- **社説を自動収集** — 朝日・毎日・読売・日経・産経など主要8社の社説一覧と無料公開部分を取得
+- **JSON / CSV で保存** — タイトル・掲載日・URL・変更検知の状態を構造化データとして保存
+- **Word Cloud で可視化** — 収集したタイトルからキーワードを抽出し、SVG ワードクラウドを生成
+- **定期実行に対応** — GitHub Actions で毎朝自動収集。Worker・CLI・marimo からも実行可能
 
-## コンセプト (なぜ「コレクター」か)
+## こんな人向け
 
-社説は新聞社の「その時々の主張」であり、時間とともに削除・改変される生きた文書です。本ツールはそれを**低頻度・低負荷・無料範囲**という礼儀を守りながら記録し、後日の分析（トレンド可視化など）に耐える形で蓄積することを目的としています。
+- 論調の変化を継続的に追いたい人
+- 複数新聞社の社説を比較したい人
+- 研究・分析用にデータをためたい人
+- 毎朝のコピペ作業を自動化したい人
 
-## 主な特徴
+## 使い方
 
-- 3つの実行形態: CLI バッチ / marimo ノートブック GUI / GitHub Pages の Pyodide Web-UI
-- 取得方式の自動切替: 静的ページは直接 HTTP、JS 描画ページは Browser Rendering（要 API キー）
-- デモモード: ネットワーク通信なしで全機能の動作確認が可能
-- Word Cloud: 辞書不要の簡易トークナイザで SVG を生成（Pyodide でも同一コードが動作）
-- セレクタチューナー: 一覧ページの HTML プレビューを見ながら CSS セレクタを実験
-- アトミックな JSON 永続化とスタンドアロン HTML レポート出力
+### Step 1 — デモで動作を確認
 
-## 前提条件
-
-| ツール | 必要バージョン | 確認コマンド |
-|---|---:|---|
-| Python | >= 3.11 | `python3 --version` |
-| uv | 最新推奨 | `uv --version` |
-| Cloudflare アカウント | 任意（JS描画対応社のみ） | — |
-
-macOS では `brew install uv` で導入できます。
-
-## 開始手順
+[ライブデモ](https://watanabe3tipapa.github.io/editorial-collector/) で「デモデータ生成」を押すだけ。全8社分のサンプル社説が投入され、ダッシュボードとエクスポートを試せます。
 
 ```bash
+# ローカルでデモモードを試す（通信なし）
 git clone https://github.com/watanabe3tipapa/editorial-collector
-cd editorial-collector
-uv sync
-```
-
-```bash
-# デモモードで動作確認（通信なし）
+cd editorial-collector && uv sync
 uv run editorial-collector --mock collect --pub yomiuri
 uv run editorial-collector report && open data/editorial_report.html
 ```
 
+### Step 2 — 実データを取得する場合
+
+静的HTMLページ（読売 / 産経 / 北海道 / 東京）は追加設定なしで取得可能です。
+
 ```bash
-# 実データ収集（APIキー不要社: 読売 / 産経 / 北海道 / 東京）
 uv run editorial-collector collect --all
 uv run editorial-collector stats
-
-# Word Cloud 生成（SVG）
-uv run editorial-collector wordcloud && open data/wordcloud.svg
-uv run editorial-collector wordcloud --pub asahi --top 80
 ```
 
 JS描画対応社（朝日 / 毎日 / 日経 / 熊本日日）を取得する場合は `.env` を作成:
@@ -73,9 +56,56 @@ JS描画対応社（朝日 / 毎日 / 日経 / 熊本日日）を取得する場
 cp .env.example .env   # CF_ACCOUNT_ID / CF_API_TOKEN を記入（.env は gitignore 済み）
 ```
 
-## 使い方
+### Step 3 — 定期収集をセットアップ
 
-### CLI
+GitHub Actions で毎朝自動収集。詳細は [GitHub Actions](#github-actions) を参照。
+
+### Step 4 — 結果を活用
+
+```bash
+# HTML レポート出力
+uv run editorial-collector report
+
+# Word Cloud 生成（SVG）
+uv run editorial-collector wordcloud && open data/wordcloud.svg
+uv run editorial-collector wordcloud --pub asahi --top 80
+
+# JSON / CSV エクスポート
+uv run editorial-collector collect --all
+```
+
+## 出力例
+
+収集データは1ファイルの JSON 配列（既定 `data/editorial_archives.json`）で、各要素は次のフィールドを持ちます。
+
+| フィールド | 内容 |
+|---|---|
+| `title` | 社説タイトル |
+| `publish_date` | 掲載日（ISO 8601） |
+| `source` / `publisher` | 新聞社キー（`asahi` `mainichi` `yomiuri` `nikkei` `sankei` `hokkaido` `tokyo` `kumanichi`） |
+| `url` | 記事URL |
+| `status` | `active` / `changed` / `deleted`（再訪問時の変更検知結果） |
+| `keywords` | 抽出キーワード |
+| `content_hash` | 記事本文ハッシュ（再訪問時に比較） |
+| `collected_at` / `last_revisit_at` | 初回収集・最終再訪問時刻（UTC ISO 8601） |
+
+## 特長
+
+- **無料公開分のみ取得** — ペイウォール内の全文は取得せず、公開されている一覧情報と無料部分だけを対象
+- **軽量で導入しやすい** — 重いインフラは不要。CLI 一つ、または Web-UI から始められる
+- **複数の実行方法に対応** — Cloudflare Worker・CLI・marimo・GitHub Actions から実行可能
+- **継続運用しやすい** — 変更検知機能で、掲載日の変化や記事の追加・削除を検出
+
+## 注意点
+
+- 取得対象は各サイトの**無料公開部分のみ**です
+- サイト側の仕様変更でセレクタ調整が必要な場合があります
+- 利用時は各サイトの利用条件に従ってください
+- 低頻度での利用を推奨します
+
+---
+
+## CLI リファレンス
 
 ```bash
 uv run editorial-collector <コマンド>
@@ -105,25 +135,15 @@ uv run marimo run notebook.py
 ### Web-UI（ブラウザ）
 
 [GitHub Pages](https://watanabe3tipapa.github.io/editorial-collector/) を開き **「Python 環境を読み込む」** → 収集・閲覧が可能。
-実データの取得には Worker プロキシ URL が必要（ページ内チュートリアル STEP 2）。
+実データの取得には Worker プロキシ URLが必要（ページ内チュートリアル STEP 2）。
 プロキシなしでも「公開アーカイブを読み込む」で定期収集データの閲覧のみ可能です。
 
-## データ形式
+## 収集対象と取得方式
 
-収集データは1ファイルの JSON 配列（既定 `data/editorial_archives.json`）で、各要素は次のフィールドを持ちます。
-
-| フィールド | 型 | 内容 |
+| 取得方式 | 対象 | 備考 |
 |---|---|---|
-| `id` | string | URL＋タイトル＋掲載日の SHA256 ハッシュ（主キー） |
-| `publisher` | string | 社キー（`asahi` `mainichi` `yomiuri` `nikkei` `sankei` `hokkaido` `tokyo` `kumanichi`） |
-| `publisher_name` | string | 表示名（例: 朝日新聞） |
-| `title` / `url` | string | 社説タイトル・記事URL |
-| `publish_date` | string | 掲載日（ISO 8601・不明時は収集日） |
-| `status` | string | `active` / `changed` / `deleted`（再訪問時の変更検知結果） |
-| `source_type` | string | 取得方式（`http` / `browser` / `media` 等） |
-| `content_hash` | string \| null | 記事本文ハッシュ（再訪問時に比較） |
-| `collected_at` / `last_revisit_at` | string | 初回収集・最終再訪問時刻（UTC ISO 8601） |
-| `summary` / `changed` / `keywords` | | 概要・変更フラグ・分類タグ |
+| 直接HTTP（静的HTML） | 読売 / 産経 / 北海道 / 東京 | 追加設定なしで動作 |
+| Cloudflare Browser Rendering | 朝日 / 毎日 / 日経 / 熊本日日 | JS描画ページ。APIキーが必要（CLI/marimo版） |
 
 ## GitHub Actions
 
@@ -149,7 +169,14 @@ uv run marimo run notebook.py
 | Pages の「定期収集データ」が 404 | `scheduled-collect` がまだ一度も実行されていない。Actions タブから手動実行する |
 | cron 収集が止まった | GitHub は 60 日間アクティブのない scheduled workflow を自動停止する。手動実行または push で再開 |
 
-## リポジトリ構成（主なファイル・ディレクトリ)
+## 収集ポリシー
+
+- 無料公開範囲のみを対象とし、有料記事の取得は行わない
+- robots.txt と各社利用規約を尊重し、低頻度（1日1回程度）で運用する
+- User-Agent でプロジェクト名を明示する
+- 記事の削除・変更検知はアーカイブ目的であり、再配布を目的としない
+
+## リポジトリ構成
 
 | パス | 内容 |
 |---|---|
@@ -165,13 +192,6 @@ uv run marimo run notebook.py
 - 認証情報は `.env` に置き、**gitignore 済み**。設計資料 `PLAN/` も同様に非公開扱いとする
 - CI では認証情報を GitHub Secrets 経由でのみ参照する（リポジトリやログに書かない）
 - API トークンは権限を最小限（Browser Rendering のみ）に絞り、漏洩疑いがある場合はローテーションする
-
-## 収集ポリシー
-
-- 無料公開範囲のみを対象とし、有料記事の取得は行わない
-- robots.txt と各社利用規約を尊重し、低頻度（1日1回程度）で運用する
-- User-Agent でプロジェクト名を明示する
-- 記事の削除・変更検知はアーカイブ目的であり、再配布を目的としない
 
 ## ロードマップ
 

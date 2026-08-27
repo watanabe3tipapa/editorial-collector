@@ -86,6 +86,34 @@
   a{color:#1864ab}
   .note{font-size:.82rem;color:var(--sub)}
 
+  .cta-group{margin:20px 0;display:flex;flex-wrap:wrap;gap:10px}
+  .cta-primary{background:var(--card);font-size:1rem;padding:12px 24px}
+  .cta-secondary{background:var(--lavender);font-size:1rem;padding:12px 24px}
+
+  .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:16px 0}
+  .feature-item{background:var(--card);border:2px solid var(--ink);border-radius:10px;
+                padding:16px;box-shadow:var(--shadow-s)}
+  .feature-item strong{display:block;margin-bottom:4px;font-size:.95rem}
+
+  .user-list{list-style:none;padding:0;margin:16px 0}
+  .user-list li{background:var(--card);border:2px solid var(--ink);border-radius:8px;
+                padding:10px 14px;margin-bottom:8px;font-size:.9rem;box-shadow:2px 2px 0 var(--ink)}
+  .user-list li:nth-child(odd){background:var(--sky)}
+
+  .step-list{counter-reset:step;margin:16px 0}
+  .step-list .step{counter-increment:step;display:flex;gap:14px;align-items:flex-start;
+                   margin-bottom:18px}
+  .step-list .step::before{content:counter(step);display:flex;align-items:center;
+                           justify-content:center;min-width:32px;height:32px;
+                           background:var(--accent);border:2px solid var(--ink);border-radius:50%;
+                           font-weight:800;font-size:.9rem;box-shadow:2px 2px 0 var(--ink)}
+  .step-list .step-body{flex:1}
+  .step-list .step-body strong{font-size:.95rem}
+
+  .output-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
+  .output-fields .field{background:var(--paper);border:1px solid var(--ink);border-radius:6px;
+                        padding:6px 10px;font-size:.82rem;font-family:SFMono-Regular,Consolas,monospace}
+
   /* --- motion --- */
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   header.hero h1{animation:rise .5s ease-out both}
@@ -111,27 +139,96 @@
 <header class="hero">
   <div class="wrap">
     <h1>editorial-collector</h1>
-    <p class="tagline">日本の主要新聞の社説を、無料で見える範囲だけ、静かに集める。</p>
+    <p class="tagline">新聞社の社説を、無料公開分だけ自動で集める。<br>
+    研究・比較・定点観測にそのまま使える収集基盤です。</p>
     <div class="badges">
-      <span>v0.1.0</span><span>MIT License</span><span>marimo / CLI / Web(Pyodide)</span>
+      <span>v0.1.1</span><span>MIT License</span><span>marimo / CLI / Web</span>
+    </div>
+    <div class="cta-group">
+      <a class="btn cta-primary" href="#webui">まずはデモを見る</a>
+      <a class="btn cta-secondary" href="https://github.com/watanabe3tipapa/editorial-collector">GitHub で使い方を見る</a>
     </div>
   </div>
 </header>
 
 <div class="wrap">
 
-<section id="about">
-  <h2>これは何？</h2>
-  <p>朝日・毎日・読売・日経・産経・北海道・東京・熊本日日の<strong>社説一覧</strong>を収集し、
-     タイトル／掲載日／URL／変更検知の状態を JSON アーカイブします。
-     ペイウォール内の全文取得は行わず、<strong>一覧情報と無料公開部分のみ</strong>を対象とします。</p>
-  <table>
-    <tr><th>取得方式</th><th>対象</th><th>備考</th></tr>
-    <tr><td>直接HTTP（静的HTML）</td><td>読売 / 産経 / 北海道 / 東京</td><td>追加設定なしで動作</td></tr>
-    <tr><td>Cloudflare Browser Rendering</td><td>朝日 / 毎日 / 日経 / 熊本日日</td><td>JS描画ページ。APIキーが必要（CLI/marimo版）</td></tr>
-  </table>
-  <p class="note">※ この Web 版（Pyodide）はブラウザの CORS 制約があるため、実データ取得には後述の Worker プロキシ URL が必要です。プロキシ無しでもデモモードが動きます。</p>
-  <div class="card" style="margin-top:16px">
+<section id="capabilities">
+  <h2>できること</h2>
+  <div class="feature-grid">
+    <div class="feature-item">
+      <strong>社説を自動収集</strong>
+      朝日・毎日・読売・日経・産経など主要8社の社説一覧と無料公開部分を取得します。
+    </div>
+    <div class="feature-item">
+      <strong>JSON / CSV で保存</strong>
+      タイトル・掲載日・URL・変更検知の状態を構造化データとして保存します。
+    </div>
+    <div class="feature-item">
+      <strong>Word Cloud で可視化</strong>
+      収集したタイトルからキーワードを抽出し、SVG ワードクラウドを生成します。
+    </div>
+    <div class="feature-item">
+      <strong>定期実行に対応</strong>
+      GitHub Actions で毎朝自動収集。Worker・CLI・marimo からも実行できます。
+    </div>
+  </div>
+</section>
+
+<section id="audience">
+  <h2>こんな人向け</h2>
+  <ul class="user-list">
+    <li>論調の変化を継続的に追いたい人</li>
+    <li>複数新聞社の社説を比較したい人</li>
+    <li>研究・分析用にデータをためたい人</li>
+    <li>毎朝のコピペ作業を自動化したい人</li>
+  </ul>
+</section>
+
+<section id="howto">
+  <h2>使い方</h2>
+  <div class="step-list">
+    <div class="step">
+      <div class="step-body">
+        <strong>Step 1 — デモで動作を確認</strong>
+        <p>このページの Web-UI で「デモデータ生成」を押すだけ。全8社分のサンプル社説が投入され、ダッシュボードとエクスポートを試せます。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-body">
+        <strong>Step 2 — 実データを取得する場合</strong>
+        <p>Worker プロキシを設定すると、実際の新聞サイトからデータを取得できます。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-body">
+        <strong>Step 3 — 定期収集をセットアップ</strong>
+        <p>GitHub Actions で毎朝自動収集。CLI / marimo でローカル運用も可能です。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-body">
+        <strong>Step 4 — 結果を活用</strong>
+        <p>JSON / CSV をエクスポートし、分析や可視化に利用します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="output-example">
+  <h2>出力例</h2>
+  <div class="card">
+    <h3>収集データの構造</h3>
+    <div class="output-fields">
+      <div class="field">title — 社説タイトル</div>
+      <div class="field">publish_date — 掲載日</div>
+      <div class="field">source — 新聞社名</div>
+      <div class="field">url — 記事URL</div>
+      <div class="field">status — active / changed / deleted</div>
+      <div class="field">keywords — 抽出キーワード</div>
+    </div>
+  </div>
+  <div class="card">
     <h3>定期収集データ（GitHub Actions 自動生成）</h3>
     <p class="note">毎朝（JST）に Actions が全社分を収集し、このページに反映します。</p>
     <div style="margin-top:10px">
@@ -142,8 +239,51 @@
   </div>
 </section>
 
+<section id="features">
+  <h2>特長</h2>
+  <div class="feature-grid">
+    <div class="feature-item">
+      <strong>無料公開分のみ取得</strong>
+      ペイウォール内の全文は取得しません。公開されている一覧情報と無料部分だけを対象とします。
+    </div>
+    <div class="feature-item">
+      <strong>軽量で導入しやすい</strong>
+      重いインフラは不要。CLI 一つ、またはこのページの Web-UI から始められます。
+    </div>
+    <div class="feature-item">
+      <strong>複数の実行方法に対応</strong>
+      Cloudflare Worker・CLI・marimo・GitHub Actions から実行できます。
+    </div>
+    <div class="feature-item">
+      <strong>継続運用しやすい</strong>
+      変更検知機能で、掲載日の変化や記事の追加・削除を検出します。
+    </div>
+  </div>
+</section>
+
+<section id="notes">
+  <h2>注意点</h2>
+  <div class="card">
+    <ul style="margin:0;padding-left:20px">
+      <li>取得対象は各サイトの<strong>無料公開部分のみ</strong>です</li>
+      <li>サイト側の仕様変更でセレクタ調整が必要な場合があります</li>
+      <li>利用時は各サイトの利用条件に従ってください</li>
+      <li>低頻度での利用を推奨します</li>
+    </ul>
+  </div>
+</section>
+
+<section id="about">
+  <h2>収集対象と取得方式</h2>
+  <table>
+    <tr><th>取得方式</th><th>対象</th><th>備考</th></tr>
+    <tr><td>直接HTTP（静的HTML）</td><td>読売 / 産経 / 北海道 / 東京</td><td>追加設定なしで動作</td></tr>
+    <tr><td>Cloudflare Browser Rendering</td><td>朝日 / 毎日 / 日経 / 熊本日日</td><td>JS描画ページ。APIキーが必要（CLI/marimo版）</td></tr>
+  </table>
+</section>
+
 <section id="tutorial">
-  <h2>チュートリアル</h2>
+  <h2>セットアップ詳細</h2>
 
   <div class="card">
     <h3>STEP 1 — デモモードで触ってみる（設定不要）</h3>
@@ -161,7 +301,7 @@ export default {
     const target = new URL(request.url).searchParams.get("url");
     if (!target || !ALLOW.some(h => target.endsWith(h)))
       return new Response("forbidden", { status: 403 });
-    const res = await fetch(target, { headers: { "User-Agent": "editorial-collector/0.1.0" } });
+    const res = await fetch(target, { headers: { "User-Agent": "editorial-collector/0.1.1" } });
     return new Response(res.body, {
       status: res.status,
       headers: { "Content-Type": res.headers.get("Content-Type") ?? "text/html",
@@ -485,7 +625,7 @@ $("btnLoadRemote").addEventListener("click", async () => {
 });
 
 // scroll reveal（reduced-motion 環境では CSS 側で無効化）
-const revealEls = document.querySelectorAll("section .card, section h2");
+const revealEls = document.querySelectorAll("section .card, section h2, section .feature-grid, section .user-list, section .step-list, section .output-fields");
 revealEls.forEach(el => el.classList.add("reveal"));
 const io = new IntersectionObserver((entries) => {
   for (const e of entries){

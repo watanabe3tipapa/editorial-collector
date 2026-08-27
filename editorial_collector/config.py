@@ -124,7 +124,7 @@ POLITE_DELAY_SECONDS = (1.0, 1.5)
 REQUEST_TIMEOUT_SECONDS = 20
 
 USER_AGENT = (
-    "editorial-collector/0.1.0 "
+    "editorial-collector/0.1.1 "
     "(research project; low-frequency crawling; contact via github.com/watanabe3tipapa)"
 )
 
