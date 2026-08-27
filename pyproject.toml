@@ -1,6 +1,6 @@
 [project]
 name = "editorial-collector"
-version = "0.1.1"
+version = "0.1.2"
 description = "日本の主要新聞の社説を無料公開範囲で収集するツール（marimo UI / CLI）"
 readme = "README.md"
 requires-python = ">=3.11"

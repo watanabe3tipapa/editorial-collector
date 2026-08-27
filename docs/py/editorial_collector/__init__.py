@@ -6,7 +6,7 @@ from .models import EditorialArchive
 from .report import export_html
 from .storage import JsonStorage
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 __all__ = [
     "EditorialCollector",

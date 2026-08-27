@@ -316,3 +316,154 @@ docs/index.html の CSS を全面リテーマ（マークアップ・JSは無変
 - Word Cloud 表示アニメ、`prefers-reduced-motion` 対応
 - 実装上の注意: `$(`proxyBase`).value` がスクリプト内に複数あり、最初の置換で webFetch 内に
   誤挿入した → node --check で検出、修復済み
+
+---
+
+## 2026-08-27 — v0.1.2 Cloudflare Workers Cron トリガー実装
+
+### 概要
+
+既存の GitHub Actions 日次収集 (`scheduled-collect.yml`) を Cloudflare ワンストップに移行。
+Workers Cron Trigger が毎朝起動し、全8社の社説を収集 → D1 に保存 → Worker HTTP エンドポイントで配信。
+
+### トリガー（発火）の仕組み
+
+Cloudflare Workers の **Cron Triggers** は、指定した cron 式で Worker を自動起動する機能。
+
+```
+Cloudflare Dashboard
+  └─ Workers & Pages
+       └─ editorial-collector
+            └─ Settings → Triggers → Cron Triggers
+                 └─ "20 0 * * *" (毎日 09:20 JST)
+```
+
+**発火フロー:**
+
+1. Cloudflare のスケジューラが `cron` 式に基づき UTC 時刻を監視
+2. 指定時刻になると Worker の `scheduled()` ハンドラを呼び出す
+3. Worker は `event.cron` でトリガーされた cron 式を確認可能
+4. `event.scheduledTime` で起動時刻の UNIX タイムスタンプを取得可能
+5. 処理が完了するとスケジューラに完了を通知（次の発火まで待機）
+
+**Cron の書き方:**
+
+```
+┌───── 分 (0-59)
+│ ┌───── 時 (0-23)
+│ │ ┌───── 日 (1-31)
+│ │ │ ┌───── 月 (1-12)
+│ │ │ │ ┌───── 曜日 (0-6, 0=日)
+│ │ │ │ │
+20 0 * * *    ← 毎日 00:20 UTC = 09:20 JST
+```
+
+**wrangler.toml での設定:**
+
+```toml
+# 方式1: 1つのトリガーで全社処理
+[[triggers]]
+crons = ["20 0 * * *"]
+
+# 方式2: 負荷分散のため分割 (CPU タイム制限対策)
+[[triggers]]
+crons = ["20 0 * * *"]   # 09:20 JST — 朝日・読売
+[[triggers]]
+crons = ["25 0 * * *"]   # 09:25 JST — 毎日・産経
+[[triggers]]
+crons = ["30 0 * * *"]   # 09:30 JST — 日経・北海道
+[[triggers]]
+crons = ["35 0 * * *"]   # 09:35 JST — 東京・熊本日日
+```
+
+**注意:**
+- Workers Free プラン: cron は **1日最大10回** のトリガー (100,000 req/day と混同注意)
+- cron の最小間隔は **1分** (秒指定は不可)
+- `event.cron` でどのトリガーが発火したか判定可能 → 分割時に対応する出版社グループを切替
+- 同一 Worker に複数 `[[triggers]]` を定義すると、**各エントリが独立して発火** する
+
+**`scheduled()` ハンドラ:**
+
+```typescript
+export default {
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    // event.cron    → "20 0 * * *" (どのcron式が発火したか)
+    // event.scheduledTime → 1724737200000 (起動時刻のUNIXタイムスタンプ)
+
+    // ctx.waitUntil() で後処理を保証
+    ctx.waitUntil(this.collectAll(env));
+  },
+};
+```
+
+**HTTP リクエストとの使い分け:**
+
+```
+Cloudflare のスケジューラ ──cron──→ scheduled()  (収集処理)
+ユーザーのブラウザ       ──GET──→ fetch()     (データ取得)
+```
+
+- `scheduled()` → 収集 + D1 保存 (バックグラウンド処理)
+- `fetch()` → D1 からデータを返す API (HTTP レスポンス)
+
+### ディレクトリ構成
+
+```
+worker/
+├── wrangler.toml              # Worker設定 + D1バインド + Cron
+├── package.json               # wrangler / TypeScript
+├── tsconfig.json
+├── schema.sql                 # D1 テーブル定義
+├── src/
+│   ├── index.ts               # エントリポイント (scheduled + fetch)
+│   ├── config.ts              # 出版社設定 (Python config.py と同期)
+│   ├── parser.ts              # HTML パース (regex ベース)
+│   ├── utils.ts               # 日付ユーティリティ
+│   ├── storage.ts             # D1 CRUD
+│   └── collectors/
+│       ├── static.ts          # 静的HTML対応社 (直接fetch)
+│       └── browser.ts         # Browser Rendering対応社
+└── test/
+```
+
+### D1 スキーマ
+
+```sql
+editorials (id, title, url, publish_date, publisher, publisher_name,
+            status, content_hash, collected_at, last_revisit_at, keywords)
+collect_logs (id, run_at, publisher, fetched, added, error)
+```
+
+### 然料枠の範囲
+
+| サービス | 無料枠 | 今回の使用量 |
+|---|---|---|
+| Workers | 100,000 req/day | 8 req/day + API |
+| D1 | 5GB / 25M reads / 100K writes | 数KB / 日数件 |
+| Cron Trigger | 1日最大10回 | 1回 (or 4回分割) |
+| Browser Rendering | フリー枠あり (要確認) | 4社/日 |
+
+### デプロイ手順
+
+```bash
+cd worker/
+npm install
+wrangler d1 create editorial-collector  # database_id を取得
+# wrangler.toml の database_id を書き換え
+wrangler d1 execute editorial-collector --file=schema.sql
+wrangler dev       # ローカル検証
+wrangler deploy    # 本番デプロイ
+```
+
+### 既存との関係
+
+- **GitHub Actions** (`scheduled-collect.yml`): 並行運用可能。停止する場合は削除
+- **Pyodide Web-UI**: Worker API からデータを取得するよう変更可能
+- **CLI / marimo**: 変更なし (引き続きローカルで動作)
+
+### 未検証
+
+- [ ] Browser Rendering API のフリープラン上限 (実際の使用量を要確認)
+- [ ] Workers Free の CPU タイム (10ms/req) で8社分のパースが収まるか
+- [ ] D1 の初期セットアップ (schema.sql 実行)
+- [ ] 実際の cron 発火確認

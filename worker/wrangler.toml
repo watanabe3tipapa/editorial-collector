@@ -1,0 +1,22 @@
+name = "editorial-collector"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+USER_AGENT = "editorial-collector/0.1.2 (research project; low-frequency crawling; contact via github.com/watanabe3tipapa)"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "editorial-collector"
+database_id = "<D1_DATABASE_ID>"
+
+# Cron は1日1回・各トリガーが2社ずつ処理
+# 09:20 JST = 00:20 UTC
+[[triggers]]
+crons = ["20 0 * * *"]
+
+# Browser Rendering API (JS描画対応社のみ使用)
+# フリープラン: 1日500リクエストまで無料
+# [browser]
+# binding = "BROWSER"

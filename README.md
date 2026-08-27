@@ -4,7 +4,7 @@
 
 研究・比較・定点観測にそのまま使える収集基盤です。朝日・毎日・読売・日経・産経・北海道・東京・熊本日日の社説一覧（タイトル・掲載日・URL）を収集し、JSON アーカイブ・HTML レポート・Word Cloud を生成します。CLI・marimo UI・ブラウザ Web-UI（Pyodide）の3つの形態で同じコアを共有します。
 
-[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/editorial-collector/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.2-blue.svg)](https://github.com/watanabe3tipapa/editorial-collector/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![deploy-pages](https://github.com/watanabe3tipapa/editorial-collector/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/watanabe3tipapa/editorial-collector/actions/workflows/deploy-pages.yml)
@@ -181,6 +181,7 @@ uv run marimo run notebook.py
 | パス | 内容 |
 |---|---|
 | `editorial_collector/` | コアパッケージ（config / models / storage / fetchers / collector / report / wordcloud / cli） |
+| `worker/` | Cloudflare Workers (Cron + D1 + Browser Rendering) による日次収集 |
 | `notebook.py` | marimo UI |
 | `docs/index.html` | GitHub Pages LP + Pyodide Web-UI |
 | `tools/sync_docs.sh` | パッケージソース → `docs/py/` 同期スクリプト |

@@ -142,7 +142,7 @@
     <p class="tagline">新聞社の社説を、無料公開分だけ自動で集める。<br>
     研究・比較・定点観測にそのまま使える収集基盤です。</p>
     <div class="badges">
-      <span>v0.1.1</span><span>MIT License</span><span>marimo / CLI / Web</span>
+      <span>v0.1.2</span><span>MIT License</span><span>marimo / CLI / Web</span>
     </div>
     <div class="cta-group">
       <a class="btn cta-primary" href="#webui">まずはデモを見る</a>
@@ -301,7 +301,7 @@ export default {
     const target = new URL(request.url).searchParams.get("url");
     if (!target || !ALLOW.some(h => target.endsWith(h)))
       return new Response("forbidden", { status: 403 });
-    const res = await fetch(target, { headers: { "User-Agent": "editorial-collector/0.1.1" } });
+    const res = await fetch(target, { headers: { "User-Agent": "editorial-collector/0.1.2" } });
     return new Response(res.body, {
       status: res.status,
       headers: { "Content-Type": res.headers.get("Content-Type") ?? "text/html",
