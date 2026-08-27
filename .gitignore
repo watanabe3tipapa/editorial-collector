@@ -28,3 +28,8 @@ docs/generated/
 # editors
 .vscode/
 .idea/
+
+# cloudflare workers
+worker/node_modules/
+worker/.wrangler/
+worker/dist/

@@ -9,7 +9,7 @@ USER_AGENT = "editorial-collector/0.1.2 (research project; low-frequency crawlin
 [[d1_databases]]
 binding = "DB"
 database_name = "editorial-collector"
-database_id = "<D1_DATABASE_ID>"
+database_id = "a2893d4e-6de9-47f3-8e6b-74afc2923c8b"
 
 # Cron は1日1回・各トリガーが2社ずつ処理
 # 09:20 JST = 00:20 UTC
